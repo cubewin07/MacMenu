@@ -7,6 +7,27 @@
 - Xcode (latest stable) + Command Line Tools: `xcode-select --install`.
 - No signing identity required for local dev.
 
+## Current state (Phase 1 scaffold)
+
+A Swift Package provides the pure `Core` layer and tests today:
+- `Package.swift` — defines the `MacMenuCore` library + `MacMenuCoreTests`.
+- `Sources/MacMenuCore/` — models (`ManagedItem`, `Visibility`, `ItemGroup`, `MacMenuConfig`), the `MenuBarManipulator` protocol (the OS-manipulation boundary), `VisibilityRuleEngine`, `GroupingModel`, `ConfigStore`.
+- `Tests/MacMenuCoreTests/` — 15 passing unit tests.
+
+The menu bar **app target** (with `Info.plist` + `LSUIElement`, and the concrete `SpacerStrategy` implementing `MenuBarManipulator`) is created in Xcode during Phase 1 and depends on `MacMenuCore`.
+
+### ⚠️ Build scratch path (important on this machine)
+
+This folder sits in a synced/locked location where SwiftPM's `.build/build.db`
+(SQLite) hits "disk I/O error". Build/test with a scratch path outside the project:
+
+```
+swift test --scratch-path /tmp/macmenu-build
+```
+
+If you ever see `accessing build database ... disk I/O error`, this is the fix.
+(`.build/` is gitignored either way.)
+
 ## Project layout
 ```
 MacMenu/
@@ -30,8 +51,9 @@ xcodebuild -scheme MacMenu -configuration Debug build
 ```
 
 ## Running tests
+- Package tests (today): `swift test --scratch-path /tmp/macmenu-build`
 - Xcode: ⌘U.
-- CLI: `xcodebuild test -scheme MacMenu -destination 'platform=macOS'`
+- CLI (once an app scheme exists): `xcodebuild test -scheme MacMenu -destination 'platform=macOS'`
 - `Core` tests (rules, grouping, persistence) run without the OS-manipulation layer.
 
 ## Permissions during development
